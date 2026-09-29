@@ -1,0 +1,77 @@
+{
+    "name": "01-copyjob-bronze-layer",
+    "objectId": "551ea7f5-2455-40f4-8db1-bae6a8318f36",
+    "properties": {
+        "jobMode": "Batch",
+        "source": {
+            "type": "DelimitedText",
+            "connectionSettings": {
+                "type": "AzureBlobStorage",
+                "externalReferences": {
+                    "connection": "38d0e53e-ec5a-4f0d-bdba-8825968a129f"
+                }
+            }
+        },
+        "destination": {
+            "type": "DelimitedText",
+            "connectionSettings": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                    "workspaceId": "c75203d3-a380-490f-9dbd-d38ec9252d83",
+                    "artifactId": "c1c5529c-4f65-48b9-a221-d8ba251e13e4",
+                    "rootFolder": "Files"
+                }
+            }
+        },
+        "policy": {
+            "timeout": "0.12:00:00"
+        }
+    },
+    "activities": [
+        {
+            "id": "956f010c-73b6-4381-bd10-b48ee70b0908",
+            "properties": {
+                "source": {
+                    "datasetSettings": {
+                        "location": {
+                            "type": "SftpLocation",
+                            "folderPath": "/Data"
+                        },
+                        "columnDelimiter": ",",
+                        "escapeChar": "\\",
+                        "firstRowAsHeader": true,
+                        "quoteChar": "\""
+                    },
+                    "storeSettings": {
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                },
+                "destination": {
+                    "datasetSettings": {
+                        "location": {
+                            "type": "LakehouseLocation"
+                        },
+                        "columnDelimiter": ",",
+                        "escapeChar": "\\",
+                        "firstRowAsHeader": true,
+                        "quoteChar": "\""
+                    },
+                    "formatSettings": {
+                        "fileExtension": ".txt"
+                    }
+                },
+                "enableStaging": false,
+                "translator": {
+                    "type": "TabularTranslator"
+                },
+                "typeConversionSettings": {
+                    "typeConversion": {
+                        "allowDataTruncation": true,
+                        "treatBooleanAsNumber": false
+                    }
+                }
+            }
+        }
+    ]
+}

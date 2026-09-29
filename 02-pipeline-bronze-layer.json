@@ -1,0 +1,179 @@
+{
+    "name": "02-pipeline-bronze-layer",
+    "objectId": "07faeffe-2372-4fc1-b8ff-6e726a8dc071",
+    "properties": {
+        "activities": [
+            {
+                "name": "Get Metadata1",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "datasetSettings": {
+                        "annotations": [],
+                        "type": "DelimitedText",
+                        "typeProperties": {
+                            "location": {
+                                "type": "SftpLocation",
+                                "folderPath": "/Data"
+                            },
+                            "columnDelimiter": ",",
+                            "escapeChar": "\\",
+                            "firstRowAsHeader": true,
+                            "quoteChar": "\""
+                        },
+                        "schema": [],
+                        "externalReferences": {
+                            "connection": "29c4a716-b020-4fcb-8460-0d87fa7a55e5"
+                        }
+                    },
+                    "storeSettings": {
+                        "type": "SftpReadSettings",
+                        "enablePartitionDiscovery": false,
+                        "disableChunking": false
+                    },
+                    "formatSettings": {
+                        "type": "DelimitedTextReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "ForEach1",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Get Metadata1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get Metadata1').output.childItems",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Copy data1",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "source": {
+                                    "type": "DelimitedTextSource",
+                                    "storeSettings": {
+                                        "type": "SftpReadSettings",
+                                        "recursive": false,
+                                        "enablePartitionDiscovery": false,
+                                        "disableChunking": false
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextReadSettings"
+                                    },
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "type": "DelimitedText",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "SftpLocation",
+                                                "fileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                },
+                                                "folderPath": "/Data"
+                                            },
+                                            "columnDelimiter": ",",
+                                            "escapeChar": "\\",
+                                            "firstRowAsHeader": true,
+                                            "quoteChar": "\""
+                                        },
+                                        "schema": [],
+                                        "externalReferences": {
+                                            "connection": "29c4a716-b020-4fcb-8460-0d87fa7a55e5"
+                                        }
+                                    }
+                                },
+                                "sink": {
+                                    "type": "DelimitedTextSink",
+                                    "storeSettings": {
+                                        "type": "LakehouseWriteSettings",
+                                        "copyBehavior": "MergeFiles"
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextWriteSettings",
+                                        "fileExtension": ".txt"
+                                    },
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "connectionSettings": {
+                                            "name": "Lakehouse",
+                                            "properties": {
+                                                "annotations": [],
+                                                "type": "Lakehouse",
+                                                "typeProperties": {
+                                                    "workspaceId": "c75203d3-a380-490f-9dbd-d38ec9252d83",
+                                                    "artifactId": "c1c5529c-4f65-48b9-a221-d8ba251e13e4",
+                                                    "rootFolder": "Files"
+                                                },
+                                                "externalReferences": {
+                                                    "connection": "0637732b-23fc-41c1-b5f9-ba2901ae6924"
+                                                }
+                                            }
+                                        },
+                                        "type": "DelimitedText",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "LakehouseLocation",
+                                                "fileName": {
+                                                    "value": "@concat(\n  replace(replace(item().name,'.csv',''),' ', '_'),\n  '_',\n  formatDateTime(utcNow(), 'yyyy-MM-dd'),\n  '.csv'\n)\n",
+                                                    "type": "Expression"
+                                                },
+                                                "folderPath": {
+                                                    "value": "@concat(\n  'bronze/',\n  replace(replace(item().name,'.csv',''),' ', ''),\n  '/',\n  formatDateTime(utcNow(), 'yyyy-MM-dd')\n)\n",
+                                                    "type": "Expression"
+                                                }
+                                            },
+                                            "columnDelimiter": ",",
+                                            "escapeChar": "\\",
+                                            "firstRowAsHeader": true,
+                                            "quoteChar": "\""
+                                        },
+                                        "schema": []
+                                    }
+                                },
+                                "enableStaging": false,
+                                "enableSkipIncompatibleRow": true,
+                                "translator": {
+                                    "type": "TabularTranslator",
+                                    "typeConversion": true,
+                                    "typeConversionSettings": {
+                                        "allowDataTruncation": true,
+                                        "treatBooleanAsNumber": false
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "lastModifiedByObjectId": "adae0d5f-9cc1-4a1a-8827-687c13882ca0",
+        "lastPublishTime": "2025-12-29T14:31:08Z"
+    }
+}
